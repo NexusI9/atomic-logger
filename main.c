@@ -1,4 +1,4 @@
-#include "include/plog.h"
+#include "include/atmlog.h"
 #include <stdio.h>
 
 int main(int argc, char *argv[]) {
