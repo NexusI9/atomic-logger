@@ -5,8 +5,8 @@ int main(int argc, char *argv[]) {
   alog_init("logfile.log");
 
   alog("First message");
-  alog("Second message");
-  alog("Third message");
+  alog("Second");
+  alog("Ro");
 
   alog_close();
 
