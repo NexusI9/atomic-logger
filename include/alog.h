@@ -9,7 +9,7 @@
 #include <time.h>
 #include <unistd.h>
 
-#define LINE_SIZE 64 //64 bytes to fit cacheline
+#define LINE_SIZE 64 // 64 bytes to fit cacheline
 #define LOG_FILE_CAPACITY (1024 * 1024)
 #define COUNTER_SIZE sizeof(atomic_uint)
 
@@ -54,11 +54,10 @@ void alog_init(const char *filename) {
     exit(1);
   }
 
-  // align
-  // TODO: do research about below code for dynamic alignment
+  // Make sure the counter offset satisfies page alignment
   size_t map_size = (file_size + page_size - 1) & ~(page_size - 1);
   off_t counter_offset = (LOG_FILE_CAPACITY - COUNTER_SIZE) &
-                         ~(page_size - 1); // Align to page boundary
+                         ~(page_size - 1); // Align to page boundary (at least 4kb)
 
   // need to offset to be aligned
   // Use MAP_SHARED to automatically write back to file
@@ -80,9 +79,12 @@ void alog_init(const char *filename) {
   // set table header
   unsigned int log_index = atomic_fetch_add(counter, 1);
   char *log_entry = (char *)mapped_region + log_index * LINE_SIZE;
-  snprintf(log_entry, LINE_SIZE, "%-9s| %-8s| %-20s| %s\n", "Time", "Line",
+  snprintf(log_entry, LINE_SIZE, "%-9s| %-5s| %-20s| %s\n", "Time", "Line",
            "File", "Comment");
 
+  log_index = atomic_fetch_add(counter, 1);
+  log_entry = (char *)mapped_region + log_index * LINE_SIZE;
+  snprintf(log_entry, LINE_SIZE, "---------+------+---------------------+-----------------------\n");
 }
 
 void alog_close() {
@@ -90,7 +92,7 @@ void alog_close() {
   // unmap region
   if (munmap(mapped_region, LOG_FILE_CAPACITY) == -1) {
     perror("Error while unmapping log");
-  }else{
+  } else {
     printf("Successfuly unmapping log");
   }
 
@@ -122,6 +124,6 @@ void atomic_log_message(const char *message, const int line, const char *file) {
   }
 
   char *log_entry = (char *)mapped_region + log_index * LINE_SIZE;
-  snprintf(log_entry, LINE_SIZE, "%-9f| %-8d| %-20s| %s\n", diff_time(), line,
+  snprintf(log_entry, LINE_SIZE, "%-9f| %-5d| %-20s| %s\n", diff_time(), line,
            file, message);
 }
