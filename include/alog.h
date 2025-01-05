@@ -9,9 +9,7 @@
 #include <time.h>
 #include <unistd.h>
 
-// https://x.com/NOTimothyLottes/status/1857804669994565771
-
-#define LINE_SIZE 64
+#define LINE_SIZE 64 //64 bytes to fit cacheline
 #define LOG_FILE_CAPACITY (1024 * 1024)
 #define COUNTER_SIZE sizeof(atomic_uint)
 
