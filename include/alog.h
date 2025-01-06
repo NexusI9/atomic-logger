@@ -56,8 +56,9 @@ void alog_init(const char *filename) {
 
   // Make sure the counter offset satisfies page alignment
   size_t map_size = (LOG_FILE_CAPACITY + page_size - 1) & ~(page_size - 1);
-  off_t counter_offset = (LOG_FILE_CAPACITY - COUNTER_SIZE) &
-                         ~(page_size - 1); // Align to page boundary (at least 4kb)
+  off_t counter_offset =
+      (LOG_FILE_CAPACITY - COUNTER_SIZE) &
+      ~(page_size - 1); // Align to page boundary (at least 4kb)
 
   // need to offset to be aligned
   // Use MAP_SHARED to automatically write back to file
@@ -81,11 +82,12 @@ void alog_init(const char *filename) {
   char *log_entry = (char *)mapped_region + log_index * LINE_SIZE;
   snprintf(log_entry, LINE_SIZE, "%-9s| %-5s| %-20s| %s\n", "Time", "Line",
            "File", "Comment");
-           
-  //add break line
+
+  // add break line
   log_index = atomic_fetch_add(counter, 1);
   log_entry = (char *)mapped_region + log_index * LINE_SIZE;
-  snprintf(log_entry, LINE_SIZE, "---------+------+---------------------+-----------------------\n");
+  snprintf(log_entry, LINE_SIZE,
+           "---------+------+---------------------+-----------------------\n");
 }
 
 void alog_close() {
@@ -127,4 +129,16 @@ void atomic_log_message(const char *message, const int line, const char *file) {
   char *log_entry = (char *)mapped_region + log_index * LINE_SIZE;
   snprintf(log_entry, LINE_SIZE, "%-9f| %-5d| %-20s| %s\n", diff_time(), line,
            file, message);
+}
+
+void alog_example() {
+  alog_init("logfile.log");
+
+  for (int i = 0; i < 100; i++) {
+    char message[200];
+    sprintf(message, "%d message", i);
+    alog(message);
+  }
+
+  alog_close();
 }
